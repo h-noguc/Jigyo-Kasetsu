@@ -1,0 +1,120 @@
+---
+description: PDFファイルからテキストを抽出し、見出し・テーブル・リストを含むMarkdown形式に整形するスキル。テキストベースのPDFを構造化されたMarkdownに変換します。
+globs:
+  - "**/*.pdf"
+alwaysApply: false
+---
+
+# PDF→Markdown変換スキル
+
+このスキルを使用して、PDFファイルからテキストを抽出し、構造化されたMarkdownファイルに変換できます。
+
+## 使用方法
+
+### 変換コマンド
+
+```bash
+python3 pdf_to_markdown/simple_pdf_to_markdown.py <入力ファイル.pdf> [出力ファイル.md]
+```
+
+出力ファイル名を省略すると、入力ファイル名から自動生成されます（例: `document.pdf` → `document.md`）。
+
+### 事前準備
+
+変換に必要なライブラリをインストール:
+
+```bash
+pip install pdfplumber
+```
+
+## 機能
+
+### テキスト抽出
+
+PDFからテキストを抽出し、Markdown形式で出力します。
+
+### 見出し自動判定
+
+フォントサイズに基づいて見出しレベルを自動判定:
+
+| フォントサイズ比率 | Markdown |
+|-------------------|----------|
+| 本文の1.5倍以上   | `# H1`   |
+| 本文の1.3倍以上   | `## H2`  |
+| 本文の1.15倍以上  | `### H3` |
+
+### テーブル変換
+
+PDF内の表を自動検出し、Markdown表形式に変換:
+
+```markdown
+| 列1 | 列2 | 列3 |
+| --- | --- | --- |
+| データ1 | データ2 | データ3 |
+```
+
+### リスト検出
+
+#### 箇条書きリスト
+
+以下の記号で始まる行を `- ` 形式に変換:
+- `•`, `・`, `●`, `○`, `◆`, `◇` など
+- `-`, `*`（半角スペースが続く場合）
+
+#### 番号付きリスト
+
+以下のパターンを `1. 2. 3.` 形式に変換:
+- `1.`, `2.`, `3.`（ピリオド区切り）
+- `(1)`, `(2)`, `(3)`（丸括弧）
+- `①`, `②`, `③`（丸数字）
+
+### 太字検出
+
+PDF内の太字テキストを `**太字**` 形式に変換します。
+
+## 設定のカスタマイズ
+
+見出し判定の閾値を変更する場合は `pdf_to_markdown/simple_pdf_to_markdown.py` の `CONFIG` 辞書を編集:
+
+```python
+CONFIG = {
+    'heading_size_ratio': {
+        'h1': 1.5,   # 本文の1.5倍以上 → H1
+        'h2': 1.3,   # 本文の1.3倍以上 → H2
+        'h3': 1.15,  # 本文の1.15倍以上 → H3
+    },
+}
+```
+
+## 使用例
+
+### 基本的な変換
+
+```bash
+# PDFをMarkdownに変換
+python3 pdf_to_markdown/simple_pdf_to_markdown.py report.pdf
+
+# 出力ファイル名を指定
+python3 pdf_to_markdown/simple_pdf_to_markdown.py report.pdf notes.md
+```
+
+### ワークフロー例
+
+1. PDFをMarkdownに変換
+2. 生成されたMarkdownを編集・整形
+3. 必要に応じて `markdown_to_pptx` でプレゼンテーションに変換
+
+```bash
+# PDFからMarkdownに変換
+python3 pdf_to_markdown/simple_pdf_to_markdown.py source.pdf
+
+# 編集後、PowerPointに変換
+python3 markdown_to_pptx/simple_markdown_to_pptx.py source.md presentation.pptx
+```
+
+## 注意事項
+
+- **テキストベースPDF専用**: テキストを選択・コピーできるPDFのみ対応
+- **スキャンPDF非対応**: 画像として保存されたPDFはOCRが必要なため非対応
+- **複雑なレイアウト**: 多段組みやテキストボックスの重なりは正確に再現できない場合があります
+- **画像・数式非対応**: 画像や数式の抽出には対応していません
